@@ -2,8 +2,7 @@
 
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
-import 'interceptors/auth_interceptor.dart';
-import 'interceptors/error_interceptor.dart';
+import '../errors/exceptions.dart';
 
 class ApiClient {
   late final Dio _dio;
@@ -20,34 +19,34 @@ class ApiClient {
         },
       ),
     );
-
     _initializeInterceptors();
   }
 
   void _initializeInterceptors() {
-    _dio.interceptors.addAll([
-      AuthInterceptor(),
-      ErrorInterceptor(),
+    _dio.interceptors.add(
       LogInterceptor(
         requestBody: true,
         responseBody: true,
         error: true,
       ),
-    ]);
+    );
   }
 
   Future<Response> get(
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
-    CancelToken? cancelToken,
   }) async {
-    return _dio.get(
-      path,
-      queryParameters: queryParameters,
-      options: options,
-      cancelToken: cancelToken,
-    );
+    try {
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      );
+      return response;
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
 
   Future<Response> post(
@@ -55,46 +54,46 @@ class ApiClient {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
-    CancelToken? cancelToken,
   }) async {
-    return _dio.post(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      options: options,
-      cancelToken: cancelToken,
-    );
+    try {
+      final response = await _dio.post(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
+      return response;
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
 
-  Future<Response> put(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-    CancelToken? cancelToken,
-  }) async {
-    return _dio.put(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      options: options,
-      cancelToken: cancelToken,
-    );
-  }
-
-  Future<Response> delete(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-    CancelToken? cancelToken,
-  }) async {
-    return _dio.delete(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      options: options,
-      cancelToken: cancelToken,
-    );
+  Exception _handleError(dynamic error) {
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+          return NetworkException(message: 'Bağlantı zaman aşımına uğradı');
+        case DioExceptionType.sendTimeout:
+          return NetworkException(message: 'İstek zaman aşımına uğradı');
+        case DioExceptionType.receiveTimeout:
+          return NetworkException(message: 'Yanıt zaman aşımına uğradı');
+        case DioExceptionType.badResponse:
+          switch (error.response?.statusCode) {
+            case 400:
+              return BadRequestException(message: 'Geçersiz istek');
+            case 401:
+              return UnauthorizedException(message: 'Yetkisiz erişim');
+            case 404:
+              return NotFoundException(message: 'Bulunamadı');
+            default:
+              return ServerException(message: 'Sunucu hatası');
+          }
+        case DioExceptionType.cancel:
+          return RequestCancelledException(message: 'İstek iptal edildi');
+        default:
+          return UnknownException(message: 'Bilinmeyen bir hata oluştu');
+      }
+    }
+    return UnknownException(message: 'Bilinmeyen bir hata oluştu');
   }
 }

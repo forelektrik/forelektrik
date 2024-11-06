@@ -18,7 +18,7 @@ class Product {
   final int stockQuantity;
   final bool inStock;
 
-  Product({
+  const Product({
     required this.id,
     required this.name,
     required this.description,

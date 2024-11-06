@@ -1,6 +1,5 @@
 // lib/data/datasources/remote/product_remote_data_source.dart
 
-import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/errors/exceptions.dart';

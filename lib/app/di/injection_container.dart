@@ -1,7 +1,9 @@
-// lib/core/di/injection_container.dart
+// lib/app/di/injection.dart
 
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import '../../core/network/api_client.dart';
+import '../../core/network/network_info.dart';
 import '../../data/datasources/remote/product_remote_data_source.dart';
 import '../../data/repositories/product_repository_impl.dart';
 import '../../domain/repositories/product_repository.dart';
@@ -10,8 +12,6 @@ import '../../domain/usecases/product/get_product_by_id_usecase.dart';
 import '../../domain/usecases/product/get_products_by_category_usecase.dart';
 import '../../domain/usecases/product/get_products_usecase.dart';
 import '../../presentation/bloc/product/product_bloc.dart';
-import '../network/api_client.dart';
-import '../network/network_info.dart';
 
 final sl = GetIt.instance;
 
@@ -31,7 +31,7 @@ Future<void> init() async {
     ),
   );
 
-  // Use cases
+  // Use Cases
   sl.registerLazySingleton(() => GetProductsUseCase(sl()));
   sl.registerLazySingleton(() => GetProductByIdUseCase(sl()));
   sl.registerLazySingleton(() => GetFeaturedProductsUseCase(sl()));
@@ -39,13 +39,10 @@ Future<void> init() async {
 
   // Repositories
   sl.registerLazySingleton<IProductRepository>(
-    () => ProductRepository(
-      remoteDataSource: sl(),
-      networkInfo: sl(),
-    ),
+    () => ProductRepository(sl(), sl()),
   );
 
-  // Data sources
+  // Data Sources
   sl.registerLazySingleton<IProductRemoteDataSource>(
     () => ProductRemoteDataSource(sl()),
   );

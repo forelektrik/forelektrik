@@ -14,8 +14,9 @@ class ApiClient {
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         contentType: 'application/json',
-        headers: {
-          'Accept': 'application/json',
+        queryParameters: {
+          'consumer_key': ApiConstants.consumerKey,
+          'consumer_secret': ApiConstants.consumerSecret,
         },
       ),
     );
@@ -35,14 +36,9 @@ class ApiClient {
   Future<Response> get(
     String path, {
     Map<String, dynamic>? queryParameters,
-    Options? options,
   }) async {
     try {
-      final response = await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final response = await _dio.get(path, queryParameters: queryParameters);
       return response;
     } catch (e) {
       throw _handleError(e);
@@ -53,14 +49,12 @@ class ApiClient {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    Options? options,
   }) async {
     try {
       final response = await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
-        options: options,
       );
       return response;
     } catch (e) {
@@ -72,22 +66,11 @@ class ApiClient {
     if (error is DioException) {
       switch (error.type) {
         case DioExceptionType.connectionTimeout:
-          return NetworkException(message: 'Bağlantı zaman aşımına uğradı');
         case DioExceptionType.sendTimeout:
-          return NetworkException(message: 'İstek zaman aşımına uğradı');
         case DioExceptionType.receiveTimeout:
-          return NetworkException(message: 'Yanıt zaman aşımına uğradı');
+          return NetworkException(message: 'Bağlantı zaman aşımına uğradı');
         case DioExceptionType.badResponse:
-          switch (error.response?.statusCode) {
-            case 400:
-              return BadRequestException(message: 'Geçersiz istek');
-            case 401:
-              return UnauthorizedException(message: 'Yetkisiz erişim');
-            case 404:
-              return NotFoundException(message: 'Bulunamadı');
-            default:
-              return ServerException(message: 'Sunucu hatası');
-          }
+          return _handleResponseError(error.response?.statusCode);
         case DioExceptionType.cancel:
           return RequestCancelledException(message: 'İstek iptal edildi');
         default:
@@ -95,5 +78,25 @@ class ApiClient {
       }
     }
     return UnknownException(message: 'Bilinmeyen bir hata oluştu');
+  }
+
+  Exception _handleResponseError(int? statusCode) {
+    switch (statusCode) {
+      case 400:
+        return BadRequestException(message: 'Geçersiz istek');
+      case 401:
+        return UnauthorizedException(message: 'Yetkisiz erişim');
+      case 403:
+        return ForbiddenException(message: 'Erişim reddedildi');
+      case 404:
+        return NotFoundException(message: 'Kaynak bulunamadı');
+      case 500:
+      case 501:
+      case 502:
+      case 503:
+        return ServerException(message: 'Sunucu hatası');
+      default:
+        return UnknownException(message: 'Bilinmeyen bir hata oluştu');
+    }
   }
 }

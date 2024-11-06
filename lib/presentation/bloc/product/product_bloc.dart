@@ -21,7 +21,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     required this.getProductsByCategory,
   }) : super(ProductInitial()) {
     on<GetProductsEvent>(_onGetProducts);
-    on<GetProductByIdEvent>(_onGetProductById);
+    on<GetProductEvent>(_onGetProduct);
     on<GetFeaturedProductsEvent>(_onGetFeaturedProducts);
     on<GetProductsByCategoryEvent>(_onGetProductsByCategory);
   }
@@ -47,8 +47,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     );
   }
 
-  Future<void> _onGetProductById(
-    GetProductByIdEvent event,
+  Future<void> _onGetProduct(
+    GetProductEvent event,
     Emitter<ProductState> emit,
   ) async {
     emit(ProductLoading());
@@ -57,7 +57,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     result.fold(
       (failure) => emit(ProductError(failure.message)),
-      (product) => emit(ProductDetailLoaded(product)),
+      (product) => emit(ProductLoaded(product)),
     );
   }
 

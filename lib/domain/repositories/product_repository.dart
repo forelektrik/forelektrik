@@ -1,8 +1,8 @@
 // lib/domain/repositories/product_repository.dart
 
 import 'package:dartz/dartz.dart';
-import '../entities/product.dart';
 import '../../core/errors/failures.dart';
+import '../entities/product.dart';
 
 abstract class IProductRepository {
   Future<Either<Failure, List<Product>>> getProducts({

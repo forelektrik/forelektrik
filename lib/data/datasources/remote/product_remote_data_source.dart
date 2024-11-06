@@ -2,7 +2,6 @@
 
 import '../../../core/network/api_client.dart';
 import '../../../core/constants/api_constants.dart';
-import '../../../core/errors/exceptions.dart';
 import '../../models/product/product_model.dart';
 
 abstract class IProductRemoteDataSource {
@@ -47,7 +46,8 @@ class ProductRemoteDataSource implements IProductRemoteDataSource {
       final queryParameters = <String, dynamic>{
         if (page != null) ApiConstants.page: page,
         if (perPage != null) ApiConstants.perPage: perPage,
-        if (searchQuery != null) ApiConstants.search: searchQuery,
+        if (searchQuery != null && searchQuery.isNotEmpty)
+          ApiConstants.search: searchQuery,
         if (categoryIds != null && categoryIds.isNotEmpty)
           ApiConstants.category: categoryIds.join(','),
         if (sortBy != null) ApiConstants.orderBy: sortBy,
@@ -63,7 +63,7 @@ class ProductRemoteDataSource implements IProductRemoteDataSource {
           .map((json) => ProductModel.fromJson(json))
           .toList();
     } catch (e) {
-      throw _handleError(e);
+      rethrow;
     }
   }
 
@@ -73,7 +73,7 @@ class ProductRemoteDataSource implements IProductRemoteDataSource {
       final response = await _apiClient.get('${ApiConstants.products}/$id');
       return ProductModel.fromJson(response.data);
     } catch (e) {
-      throw _handleError(e);
+      rethrow;
     }
   }
 
@@ -86,7 +86,7 @@ class ProductRemoteDataSource implements IProductRemoteDataSource {
       final queryParameters = <String, dynamic>{
         if (page != null) ApiConstants.page: page,
         if (perPage != null) ApiConstants.perPage: perPage,
-        'featured': true,
+        ApiConstants.featured: true,
       };
 
       final response = await _apiClient.get(
@@ -98,7 +98,7 @@ class ProductRemoteDataSource implements IProductRemoteDataSource {
           .map((json) => ProductModel.fromJson(json))
           .toList();
     } catch (e) {
-      throw _handleError(e);
+      rethrow;
     }
   }
 
@@ -124,23 +124,7 @@ class ProductRemoteDataSource implements IProductRemoteDataSource {
           .map((json) => ProductModel.fromJson(json))
           .toList();
     } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  Exception _handleError(dynamic error) {
-    if (error is NetworkException) {
-      return error;
-    } else if (error is ServerException) {
-      return error;
-    } else if (error is BadRequestException) {
-      return error;
-    } else if (error is UnauthorizedException) {
-      return error;
-    } else if (error is NotFoundException) {
-      return error;
-    } else {
-      return UnknownException(message: 'Bilinmeyen bir hata oluştu');
+      rethrow;
     }
   }
 }

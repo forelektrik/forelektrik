@@ -1,18 +1,17 @@
 // lib/data/repositories/product_repository_impl.dart
 
 import 'package:dartz/dartz.dart';
+import '../../core/errors/failures.dart';
+import '../../core/network/network_info.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
-import '../../core/errors/failures.dart';
-import '../../core/errors/exceptions.dart';
 import '../datasources/remote/product_remote_data_source.dart';
-import '../../core/network/network_info.dart';
 
 class ProductRepository implements IProductRepository {
-  final IProductRemoteDataSource _remoteDataSource;
-  final NetworkInfo _networkInfo;
+  final IProductRemoteDataSource remoteDataSource;
+  final NetworkInfo networkInfo;
 
-  ProductRepository(this._remoteDataSource, this._networkInfo);
+  ProductRepository(this.remoteDataSource, this.networkInfo);
 
   @override
   Future<Either<Failure, List<Product>>> getProducts({
@@ -23,9 +22,9 @@ class ProductRepository implements IProductRepository {
     String? sortBy,
     String? sortOrder,
   }) async {
-    if (await _networkInfo.isConnected) {
+    if (await networkInfo.isConnected) {
       try {
-        final products = await _remoteDataSource.getProducts(
+        final products = await remoteDataSource.getProducts(
           page: page,
           perPage: perPage,
           searchQuery: searchQuery,
@@ -34,12 +33,8 @@ class ProductRepository implements IProductRepository {
           sortOrder: sortOrder,
         );
         return Right(products);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
-      } on NetworkException catch (e) {
-        return Left(NetworkFailure(e.message));
       } catch (e) {
-        return Left(ServerFailure(e.toString()));
+        return Left(ServerFailure('Sunucu hatası: ${e.toString()}'));
       }
     } else {
       return const Left(NetworkFailure('İnternet bağlantısı yok'));
@@ -48,16 +43,12 @@ class ProductRepository implements IProductRepository {
 
   @override
   Future<Either<Failure, Product>> getProductById(int id) async {
-    if (await _networkInfo.isConnected) {
+    if (await networkInfo.isConnected) {
       try {
-        final product = await _remoteDataSource.getProductById(id);
+        final product = await remoteDataSource.getProductById(id);
         return Right(product);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
-      } on NetworkException catch (e) {
-        return Left(NetworkFailure(e.message));
       } catch (e) {
-        return Left(ServerFailure(e.toString()));
+        return Left(ServerFailure('Sunucu hatası: ${e.toString()}'));
       }
     } else {
       return const Left(NetworkFailure('İnternet bağlantısı yok'));
@@ -69,19 +60,15 @@ class ProductRepository implements IProductRepository {
     int? page,
     int? perPage,
   }) async {
-    if (await _networkInfo.isConnected) {
+    if (await networkInfo.isConnected) {
       try {
-        final products = await _remoteDataSource.getFeaturedProducts(
+        final products = await remoteDataSource.getFeaturedProducts(
           page: page,
           perPage: perPage,
         );
         return Right(products);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
-      } on NetworkException catch (e) {
-        return Left(NetworkFailure(e.message));
       } catch (e) {
-        return Left(ServerFailure(e.toString()));
+        return Left(ServerFailure('Sunucu hatası: ${e.toString()}'));
       }
     } else {
       return const Left(NetworkFailure('İnternet bağlantısı yok'));
@@ -94,20 +81,16 @@ class ProductRepository implements IProductRepository {
     int? page,
     int? perPage,
   }) async {
-    if (await _networkInfo.isConnected) {
+    if (await networkInfo.isConnected) {
       try {
-        final products = await _remoteDataSource.getProductsByCategory(
+        final products = await remoteDataSource.getProductsByCategory(
           categoryId,
           page: page,
           perPage: perPage,
         );
         return Right(products);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
-      } on NetworkException catch (e) {
-        return Left(NetworkFailure(e.message));
       } catch (e) {
-        return Left(ServerFailure(e.toString()));
+        return Left(ServerFailure('Sunucu hatası: ${e.toString()}'));
       }
     } else {
       return const Left(NetworkFailure('İnternet bağlantısı yok'));

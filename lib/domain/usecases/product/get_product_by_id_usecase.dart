@@ -8,7 +8,7 @@ import '../../repositories/product_repository.dart';
 class GetProductByIdUseCase {
   final IProductRepository repository;
 
-  const GetProductByIdUseCase(this.repository);
+  GetProductByIdUseCase(this.repository);
 
   Future<Either<Failure, Product>> call(int id) async {
     return await repository.getProductById(id);

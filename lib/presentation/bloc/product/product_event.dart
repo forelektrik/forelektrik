@@ -37,10 +37,10 @@ class GetProductsEvent extends ProductEvent {
       ];
 }
 
-class GetProductByIdEvent extends ProductEvent {
+class GetProductEvent extends ProductEvent {
   final int id;
 
-  const GetProductByIdEvent(this.id);
+  const GetProductEvent(this.id);
 
   @override
   List<Object> get props => [id];

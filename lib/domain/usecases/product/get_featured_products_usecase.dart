@@ -8,7 +8,7 @@ import '../../repositories/product_repository.dart';
 class GetFeaturedProductsUseCase {
   final IProductRepository repository;
 
-  const GetFeaturedProductsUseCase(this.repository);
+  GetFeaturedProductsUseCase(this.repository);
 
   Future<Either<Failure, List<Product>>> call({
     int? page,
